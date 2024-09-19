@@ -1,0 +1,213 @@
+{% extends "users/base.html" %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">Welcome to MovieNarts {{ request.user.username }}!</h1>
+
+    {% if not request.user.is_authenticated %}
+    <section class="mb-4">
+        <h2>
+            Do you want to create lists, see recommendations and interact with other film lovers?
+            <a href="{% url 'users:register'%}" class="username-link">
+                Register
+            </a> now!
+        </h2>
+    </section>
+    {% endif %}
+
+    <!-- Movies of This Year Section -->
+    <section class="mb-4">
+    <h2>
+        Movies Released This Year
+        <a href="{% url 'users:movies_of_year' year %}" class="more-link">
+            &gt;
+        </a>
+    </h2>
+    <div class="row">
+        {% for movie in movies_of_this_year %}
+            <div class="col-md-2 col-lg-2 mb-4">
+                <div class="card bg-dark text-light border-dark card-custom">
+                    <a href="{% url 'movies:movie_detail' movie.title %}" class="text-light text-decoration-none">
+                        <img src="{{ movie.poster.url }}" class="card-img-top card-img-top-custom" alt="{{ movie.title }} Poster">
+                    </a>
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <a href="{% url 'movies:movie_detail' movie.title %}" class="text-light text-decoration-none">
+                                {{ movie.title }}
+                            </a>
+                        </h5>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="col-12">
+                <div class="alert alert-info" role="alert">
+                    No movies released this year.
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+    </section>
+
+    <!-- Most Liked Movies Section -->
+    <section>
+        <h2>
+            Most Liked Movies
+            <a href="{% url 'users:most_liked_movies' %}" class="more-link">
+                &gt;
+            </a>
+        </h2>
+        <div class="row">
+            {% for movie in most_liked_movies %}
+                <div class="col-md-2 col-lg-2 mb-4">
+                    <div class="card bg-dark text-light border-dark card-custom">
+                        <a href="{% url 'movies:movie_detail' movie.title %}" class="text-light text-decoration-none">
+                            <img src="{{ movie.poster.url }}" class="card-img-top card-img-top-custom" alt="{{ movie.title }} Poster">
+                        </a>
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <a href="{% url 'movies:movie_detail' movie.title %}" class="text-light text-decoration-none">
+                                    {{ movie.title }}
+                                </a>
+                            </h5>
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="col-12">
+                    <div class="alert alert-info" role="alert">
+                        No movies are liked.
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <!-- Recommendations Section -->
+    {% if request.user.is_authenticated %}
+    <section>
+        <h2>
+            Recommendations For You
+            <a href="{% url 'users:recommended_movies' %}" class="more-link">
+                &gt;
+            </a>
+        </h2>
+        {% if no_reviews %}
+            <div class="col-12">
+                <div class="alert alert-info" role="alert">
+                    To see personalized recommendations, start to add reviews.
+                </div>
+            </div>
+        {% endif %}
+        <div class="row">
+            {% for movie in recommendations %}
+                <div class="col-md-2 col-lg-2 mb-4">
+                    <div class="card bg-dark text-light border-dark card-custom">
+                        <a href="{% url 'movies:movie_detail' movie.title %}" class="text-light text-decoration-none">
+                            <img src="{{ movie.poster.url }}" class="card-img-top card-img-top-custom" alt="{{ movie.title }} Poster">
+                        </a>
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <a href="{% url 'movies:movie_detail' movie.title %}" class="text-light text-decoration-none">
+                                    {{ movie.title }}
+                                </a>
+                            </h5>
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="col-12">
+                    <div class="alert alert-info" role="alert">
+                        To see recommendations, start to add reviews.
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    {% if request.user.is_authenticated %}
+    <section>
+        <h2>
+            Similar Users
+            <a href="{% url 'users:similar_users' %}" class="more-link">
+                &gt;
+            </a>
+        </h2>
+        {% if no_reviews %}
+            <div class="col-12">
+                <div class="alert alert-info" role="alert">
+                    To see users with similar movie taste to yours, start to add reviews.
+                </div>
+            </div>
+        {% else %}
+        <div class="row">
+            {% for user in similar_users %}
+                <div class="col-md-2 col-lg-2 mb-4 text-center">
+                    <div class="card bg-dark text-light border-dark card-custom">
+                        <div class="card-body text-center">
+                            <a href="{% url 'users:profile' user.username %}" class="text-light text-decoration-none">
+                                <img src="{{ user.profile.image.url }}" class="rounded-circle" alt="{{ user.username }} Profile Picture" style="width: 100px; height: 100px; object-fit: cover;">
+                            </a>
+                            <h5 class="card-title mt-2">
+                                <a href="{% url 'users:profile' user.username %}" class="text-light text-decoration-none">
+                                    {{ user.username }}
+                                </a>
+                            </h5>
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="col-12">
+                    <div class="alert alert-info" role="alert">
+                        To see users with similar movie taste to yours, start to add reviews.
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </section>
+    {% endif %}
+
+    <!-- New Movies From Friends Section -->
+    {% if request.user.is_authenticated %}
+    <section>
+        <h2>
+            What Did Your Friends Watched Recently?
+            <a href="{% url 'users:friends_watched_recently' %}" class="more-link">
+                &gt;
+            </a>
+        </h2>
+        <div class="row">
+            {% for movie in movies_of_friends %}
+                <div class="col-md-2 col-lg-2 mb-4">
+                    <div class="card bg-dark text-light border-dark card-custom">
+                        <a href="{% url 'movies:movie_detail' movie.movie.title %}" class="text-light text-decoration-none">
+                            <img src="{{ movie.movie.poster.url }}" class="card-img-top card-img-top-custom" alt="{{ movie.movie.title }} Poster">
+                        </a>
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <a href="{% url 'movies:movie_detail' movie.movie.title %}" class="text-light text-decoration-none">
+                                    {{ movie.movie.title }}
+                                </a>
+                            </h5>
+                            <h6>
+                                Watched by <a href="{% url 'users:profile' movie.user.username %}" class="btn btn-sm btn-outline-primary p-1" role="button">{{ movie.user.username }}</a> on {{ movie.watch_date.date }}
+                            </h6>
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="col-12">
+                    <div class="alert alert-info" role="alert">
+                        No movies are watched by your friends.
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,50 @@
+{% extends "users/base.html" %}
+
+{% block title %}{{ director.name }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <!-- Director Details -->
+        <div class="col-md-4 mb-4">
+            <div class="card border-dark">
+                <div class="card-body text-center">
+                    <h3 class="card-title">{{ director.name }}</h3>
+                    <p class="card-text"><strong>Birth Year:</strong> {{ director.birth_year }}</p>
+                    <p class="card-text"><strong>Bio:</strong> {{ director.bio|default:"No bio available." }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Director's Movies -->
+        <div class="col-md-8">
+            <div class="card border-dark mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4>Movies Directed</h4>
+                </div>
+                <div class="card-body">
+                    {% if movies %}
+                        <div class="row">
+                            {% for movie in movies %}
+                                <div class="col-md-3 mb-3">
+                                    <div class="card bg-dark text-light border-dark card-custom">
+                                        <a href="{% url 'movies:movie_detail' movie.title %}">
+                                            <img src="{{ movie.poster.url }}" class="card-img-top" alt="{{ movie.title }} Poster">
+                                        </a>
+                                        <div class="card-body text-center">
+                                            <h5 class="card-title">{{ movie.title }}</h5>
+                                            <p class="card-text">{{ movie.year }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p>No movies directed yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

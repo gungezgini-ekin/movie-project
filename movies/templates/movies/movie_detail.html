@@ -1,0 +1,364 @@
+{% extends "users/base.html" %}
+
+{% block title %}{{ movie.title }}{% endblock %}
+
+{% block content %}
+    {% if messages %}
+        <div class="alert alert-info">
+            {% for message in messages %}
+                <p>{{ message }}</p>
+            {% endfor %}
+        </div>
+    {% endif %}
+<div class="container mt-4">
+    <div class="row">
+        <!-- Movie Poster -->
+        <div class="col-md-4 mb-4">
+            <div class="card border-dark">
+                <img src="{{ movie.poster.url }}" class="card-img-top" alt="{{ movie.title }} Poster">
+            </div>
+            {% if movie.trailer_id %}
+                <!-- Play Trailer Button -->
+                <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+                <button id="playTrailerBtn" class="btn btn-red mt-3">
+                    <i class="fas fa-play"></i> Play the Trailer
+                </button>
+            {% else %}
+                <p>No trailer available for this movie.</p>
+            {% endif %}
+        </div>
+
+        <!-- Movie Details -->
+        <div class="col-md-8">
+            <div class="card border-dark bg-dark text-light mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h2 class="card-title mb-0">{{ movie.title }}</h2>
+
+                        <!-- Like and Watchlist Buttons -->
+                        <div class="d-flex gap-2"> <!-- Add gap-2 for spacing between buttons -->
+                            <button class="like-unlike-btn btn p-0" style="font-size: 24px; color: #888; background: none; border: none; cursor: pointer;"
+                                data-url="{% if liked %}{% url 'movies:delete_like' movie.title  %}{% else %}{% url 'movies:like_movie' movie.title %}{% endif %}">
+                                {% if liked %}
+                                    ❤️
+                                {% else %}
+                                    &#9825;
+                                {% endif %}
+                            </button>
+                            <button class="want-to-watch-btn btn btn-secondary"
+                                data-url="{% if want_to_watch %}{% url 'movies:delete_from_watchlist' movie.title %}{% else %}{% url 'movies:want_to_watch' movie.title %}{% endif %}">
+                                {% if want_to_watch %}
+                                    Delete from Watchlist
+                                {% else %}
+                                    Add to Watchlist
+                                {% endif %}
+                            </button>
+                            <button class="watched-btn btn btn-secondary"
+                                data-url="{% if watched %}{% url 'movies:delete_from_watched' movie.title %}{% else %}{% url 'movies:add_watched' movie.title %}{% endif %}">
+                                {% if watched %}
+                                    Delete from Watched Movies
+                                {% else %}
+                                    Mark as Watched
+                                {% endif %}
+                            </button>
+                            <!-- Button to Open Add to List Modal -->
+                            <button type="button" class="btn btn-primary ms-2" data-bs-toggle="modal" data-bs-target="#addToListModal">
+                                Add to List
+                            </button>
+                        </div>
+                    </div>
+
+                    <p class="card-text mt-3"><strong>Director:</strong> <a href="{% url 'movies:director_detail' movie.director.name %}" class="btn btn-sm btn-outline-primary p-1" role="button">{{ movie.director.name }}</a></p>
+                    <p class="card-text"><strong>Release Date:</strong> {{ movie.year }}</p>
+                    <p class="card-text"><strong>Duration:</strong> {{ movie.duration }} minutes</p>
+                    <p class="card-text"><strong>Genres:</strong>
+                        {% if movie.genre.all %}
+                            {% for genre in  movie.genre.all %}
+                                <a href="{% url 'movies:genre_detail' genre.name %}" class="btn btn-sm btn-outline-primary p-1" role="button">{{ genre.name }}</a>
+                                {% if not forloop.last %}, {% endif %}
+                            {% endfor %}
+                        {% else %}
+                            No genres available.
+                        {% endif %}
+                    </p>
+                    <p class="card-text"><strong>MovieNarts Rating:</strong> {{ avg_rating }}/10 </p>
+                    <p class="card-text"><strong>Synopsis:</strong> {{ movie.synopsis }}</p>
+
+                    <h4 class="mt-4">Reviews:</h4>
+                    {% if movie.review_set.exists %}
+                            {% for review in reviews %}
+                                <div class="mb-3 border-bottom pb-2">
+                                    <p>
+                                        <strong> By </strong>
+                                            <a href="{% url 'users:profile' review.writer.username %}" class="btn btn-sm btn-outline-primary p-1" role="button">{{ review.writer.username }}</a> , added on {{ review.review_date.date }}
+                                    </p>
+                                    <p><strong> Score: </strong> {{ review.rating }}</p>
+                                    <p>{{ review.review|slice:":100" }}{% if review.review|length > 100 %}...{% endif %}</p>
+                                    <!-- Buttons to view full review and delete -->
+                                    <div class="d-flex justify-content-end mt-2">
+                                        <a href="{% url 'movies:review_detail' review.id %}" class="btn btn-secondary me-2">View Full Review</a>
+                                        {% if request.user.is_authenticated and review.writer == request.user %}
+                                            <form action="{% url 'movies:delete_review' movie.title %}" method="post" class="mt-2">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="review_id" value="{{ review.id }}">
+                                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this review?');">Delete Review</button>
+                                            </form>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <p>No reviews yet.</p>
+                        {% endif %}
+                    <div class="d-flex justify-content-between align-items-center mt-4">
+                            <a href="{% url 'movies:add_review' movie.title %}" class="btn btn-primary">Add New Review</a>
+                            <!-- Pagination Controls -->
+                            <nav aria-label="Page navigation">
+                                <ul class="pagination mb-0">
+                                    {% if reviews.has_previous %}
+                                        <li class="page-item">
+                                            <a class="page-link btn btn-secondary" href="?page=1" aria-label="First">
+                                                <span aria-hidden="true">&laquo;&laquo;</span>
+                                            </a>
+                                        </li>
+                                        <li class="page-item">
+                                            <a class="page-link btn btn-secondary" href="?page={{ reviews.previous_page_number }}" aria-label="Previous">
+                                                <span aria-hidden="true">&laquo;</span>
+                                            </a>
+                                        </li>
+                                    {% else %}
+                                        <li class="page-item disabled">
+                                            <span class="page-link btn btn-secondary">&laquo;&laquo;</span>
+                                        </li>
+                                        <li class="page-item disabled">
+                                            <span class="page-link btn btn-secondary">&laquo;</span>
+                                        </li>
+                                    {% endif %}
+
+                                    <li class="page-item disabled">
+                                        <span class="page-link btn btn-secondary">Page {{ reviews.number }} of {{ reviews.paginator.num_pages }}</span>
+                                    </li>
+
+                                    {% if reviews.has_next %}
+                                        <li class="page-item">
+                                            <a class="page-link btn btn-secondary" href="?page={{ reviews.next_page_number }}" aria-label="Next">
+                                                <span aria-hidden="true">&raquo;</span>
+                                            </a>
+                                        </li>
+                                        <li class="page-item">
+                                            <a class="page-link btn btn-secondary" href="?page={{ reviews.paginator.num_pages }}" aria-label="Last">
+                                                <span aria-hidden="true">&raquo;&raquo;</span>
+                                            </a>
+                                        </li>
+                                    {% else %}
+                                        <li class="page-item disabled">
+                                            <span class="page-link btn btn-secondary">&raquo;</span>
+                                        </li>
+                                        <li class="page-item disabled">
+                                            <span class="page-link btn btn-secondary">&raquo;&raquo;</span>
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                            </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Modal for Adding Movie to List -->
+<div class="modal fade" id="addToListModal" tabindex="-1" aria-labelledby="addToListModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addToListModalLabel">Add "{{ movie.title }}" to List</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Form to select a list and add the movie -->
+                <form action="{% url 'movies:add_to_list' movie.title %}" method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="listSelect" class="form-label">Select List</label>
+                        <select id="listSelect" name="list_id" class="form-select" >
+                            {% for list in user_lists %}
+                                <option value="{{ list.id }}">{{ list.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Add to List</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <!-- New Trailer Modal -->
+<div id="trailerModal" class="modal">
+    <div class="modal-content-1">
+        <span class="close">&times;</span>
+        <iframe id="trailerIframe" width="700" height="400"
+                src=""
+                frameborder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen>
+        </iframe>
+    </div>
+</div>
+
+    <!-- JavaScript for AJAX -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+
+$(document).ready(function() {
+
+    $('.like-unlike-btn').click(function(e) {
+        e.preventDefault();
+
+        var button = $(this);
+        var url = button.data('url');  // URL for like unlike
+
+        $.ajax({
+            type: "POST",
+            url: url,
+            headers: { "X-CSRFToken": "{{ csrf_token }}" }, // Include CSRF token
+            success: function(response) {
+                console.log('AJAX response:', response); // Debugging line
+
+                if (response.status === 'liked') {
+                    button.html('❤️');
+                    button.data('url', response.unlike_url);
+                } else if (response.status === 'unliked') {
+                    button.html('&#9825;');
+                    button.data('url', response.like_url);
+                }
+
+
+                // Display the success message
+                if (response.message) {
+                    $('.alert-info').remove();  // Remove existing message
+                    var messageHtml = '<div class="alert alert-info">' + response.message + '</div>';
+                    button.closest('.card-body').prepend(messageHtml);
+                }
+            },
+            error: function(xhr, status, error) {
+                if (xhr.status === 401) {
+                    // Redirect to the login page if the user is not authenticated
+                    window.location.href = "/login/";
+                } else {
+                    console.error('Error:', xhr.status);
+                }
+            }
+        });
+    });
+
+    $('.want-to-watch-btn').click(function(e) {
+        e.preventDefault();
+
+        var button = $(this);
+        var url = button.data('url');  // URL for like unlike
+
+        $.ajax({
+            type: "POST",
+            url: url,
+            headers: { "X-CSRFToken": "{{ csrf_token }}" }, // Include CSRF token
+            success: function(response) {
+                console.log('AJAX response:', response); // Debugging line
+
+                if (response.status === 'want_to_watch') {
+                    button.text('Delete from Watchlist');
+                    button.data('url', response.delete_want_to_url);
+                } else if (response.status === 'not_want_to_watch') {
+                    button.text('Add to Watchlist');
+                    button.data('url', response.add_want_to_url);
+                }
+
+                // Display the success message
+                if (response.message) {
+                    $('.alert-info').remove();  // Remove existing message
+                    var messageHtml = '<div class="alert alert-info">' + response.message + '</div>';
+                    button.closest('.card-body').prepend(messageHtml);
+                }
+            },
+            error: function(xhr, status, error) {
+                if (xhr.status === 401) {
+                    // Redirect to the login page if the user is not authenticated
+                    window.location.href = "/login/";
+                } else {
+                    console.error('Error:', xhr.status);
+                }
+            }
+        });
+    });
+
+    $('.watched-btn').click(function(e) {
+        e.preventDefault();
+
+        var button = $(this);
+        var url = button.data('url');  // URL for like unlike
+
+        $.ajax({
+            type: "POST",
+            url: url,
+            headers: { "X-CSRFToken": "{{ csrf_token }}" }, // Include CSRF token
+            success: function(response) {
+                console.log('AJAX response:', response); // Debugging line
+
+                if (response.status === 'watched') {
+                    button.text("Delete from Watched Movies");
+                    button.data('url', response.delete_watched_url);
+                } else if (response.status === 'not_watched') {
+                    button.text('Mark as Watched');
+                    button.data('url', response.add_watched_url);
+                }
+
+                // Display the success message
+                if (response.message) {
+                    $('.alert-info').remove();  // Remove existing message
+                    var messageHtml = '<div class="alert alert-info">' + response.message + '</div>';
+                    button.closest('.card-body').prepend(messageHtml);
+                }
+            },
+            error: function(xhr, status, error) {
+                if (xhr.status === 401) {
+                    // Redirect to the login page if the user is not authenticated
+                    window.location.href = "/login/";
+                } else {
+                    console.error('Error:', xhr.status);
+                }
+            }
+        });
+    });
+
+    // JavaScript for the trailer modal
+        var trailerModal = document.getElementById("trailerModal");
+        var trailerBtn = document.getElementById("playTrailerBtn");
+        var closeSpan = document.getElementsByClassName("close")[0];
+        var trailerIframe = document.getElementById('trailerIframe');
+
+        // When the user clicks the button, open the modal and set the trailer src
+        trailerBtn.onclick = function() {
+            trailerModal.style.display = "block";
+            trailerIframe.src = "https://www.youtube.com/embed/{{ movie.trailer_id }}";
+        }
+
+        // When the user clicks on <span> (x), close the modal
+        closeSpan.onclick = function() {
+            trailerModal.style.display = "none";
+            trailerIframe.src = ""; // Stop the video
+        }
+
+        // When the user clicks anywhere outside of the modal, close it
+        window.onclick = function(event) {
+            if (event.target == trailerModal) {
+                trailerModal.style.display = "none";
+                trailerIframe.src = ""; // Stop the video
+            }
+        }
+
+});
+</script>
+
+{% endblock %}

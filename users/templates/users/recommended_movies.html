@@ -1,0 +1,142 @@
+{% extends "users/base.html" %}
+
+{% block title %} Movies Recommended For You {% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+
+        <!-- Movies -->
+        <div class="col-md-12">
+            <div class="card border-dark mb-4">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h4> Movies Recommended For You </h4>
+                    <!-- Pagination Controls (Top) -->
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination mb-0">
+                            {% if movies.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link btn btn-secondary" href="?page=1" aria-label="First">
+                                        <span aria-hidden="true">&laquo;&laquo;</span>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link btn btn-secondary" href="?page={{ movies.previous_page_number }}" aria-label="Previous">
+                                        <span aria-hidden="true">&laquo;</span>
+                                    </a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled">
+                                    <span class="page-link btn btn-secondary">&laquo;&laquo;</span>
+                                </li>
+                                <li class="page-item disabled">
+                                    <span class="page-link btn btn-secondary">&laquo;</span>
+                                </li>
+                            {% endif %}
+
+                            <li class="page-item disabled">
+                                <span class="page-link btn btn-secondary">Page {{ movies.number }} of {{ movies.paginator.num_pages }}</span>
+                            </li>
+
+                            {% if movies.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link btn btn-secondary" href="?page={{ movies.next_page_number }}" aria-label="Next">
+                                        <span aria-hidden="true">&raquo;</span>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link btn btn-secondary" href="?page={{ movies.paginator.num_pages }}" aria-label="Last">
+                                        <span aria-hidden="true">&raquo;&raquo;</span>
+                                    </a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled">
+                                    <span class="page-link btn btn-secondary">&raquo;</span>
+                                </li>
+                                <li class="page-item disabled">
+                                    <span class="page-link btn btn-secondary">&raquo;&raquo;</span>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                </div>
+                <p class="mt-2">Based on your movie ratings, these recommendations might interest you. To have better recommendations, rate more movies.</p>
+            </div>
+                <div class="card-body">
+                    {% if movies %}
+                        <div class="row">
+                            {% for movie in movies %}
+                                <div class="col-md-2 mb-3">
+                                    <div class="card bg-dark text-light border-dark card-custom">
+                                        <a href="{% url 'movies:movie_detail' movie.title %}">
+                                            <img src="{{ movie.poster.url }}" class="card-img-top" alt="{{ movie.title }} Poster">
+                                        </a>
+                                        <div class="card-body text-center">
+                                            <h5 class="card-title">{{ movie.title }}</h5>
+                                            <p class="card-text">{{ movie.year }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p>No movies are released in {{ year }} yet.</p>
+                    {% endif %}
+                </div>
+
+                <!-- Pagination Controls (Bottom) -->
+                <div class="d-flex justify-content-end mt-4" style="margin-bottom: 20px; padding-right: 15px;">
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination mb-0">
+                            {% if movies.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link btn btn-secondary" href="?page=1" aria-label="First">
+                                        <span aria-hidden="true">&laquo;&laquo;</span>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link btn btn-secondary" href="?page={{ movies.previous_page_number }}" aria-label="Previous">
+                                        <span aria-hidden="true">&laquo;</span>
+                                    </a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled">
+                                    <span class="page-link btn btn-secondary">&laquo;&laquo;</span>
+                                </li>
+                                <li class="page-item disabled">
+                                    <span class="page-link btn btn-secondary">&laquo;</span>
+                                </li>
+                            {% endif %}
+
+                            <li class="page-item disabled">
+                                <span class="page-link btn btn-secondary">Page {{ movies.number }} of {{ movies.paginator.num_pages }}</span>
+                            </li>
+
+                            {% if movies.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link btn btn-secondary" href="?page={{ movies.next_page_number }}" aria-label="Next">
+                                        <span aria-hidden="true">&raquo;</span>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link btn btn-secondary" href="?page={{ movies.paginator.num_pages }}" aria-label="Last">
+                                        <span aria-hidden="true">&raquo;&raquo;</span>
+                                    </a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled">
+                                    <span class="page-link btn btn-secondary">&raquo;</span>
+                                </li>
+                                <li class="page-item disabled">
+                                    <span class="page-link btn btn-secondary">&raquo;&raquo;</span>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

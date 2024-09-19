@@ -1,0 +1,54 @@
+{% extends "users/base.html" %}
+
+{% block title %}
+    {% if are_equal %}
+        All Your Followings
+    {% else %}
+        All Followings of {{ user.username }}
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    {% if messages %}
+        <div class="alert alert-info">
+            {% for message in messages %}
+                <p>{{ message }}</p>
+            {% endfor %}
+        </div>
+    {% endif %}
+    {% if permitted %}
+    <div class="container mt-4 mb-4">
+        <h2 class="mb-3">
+            {% if are_equal %}
+                You follow {{ following_count }} users.
+            {% else %}
+                {{ user.username }} follows {{ following_count }} users.
+            {% endif %}
+        </h2>
+        {% if followings %}
+            <div class="list-group">
+                {% for following in followings %}
+                    <a href="{% url 'users:profile' following.following.username %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                        <span class="d-flex align-items-center">
+                            {{ following.following.username }}
+                        </span>
+                        <div class="d-flex align-items-center ms-auto">
+                            <span class="badge bg-secondary rounded-pill me-2">Profile</span>
+                            {% if request.user.is_authenticated and are_equal %}
+                                <form action="{% url 'users:unfollow_from_profile' following.following.username%}" method="post" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('Are you sure you want to unfollow this user?');" title="Unfollow">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </form>
+                            {% endif %}
+                        </div>
+                    </a>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="text-center">No followings yet.</p>
+        {% endif %}
+    </div>
+    {% endif %}
+{% endblock %}

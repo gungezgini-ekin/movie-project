@@ -1,0 +1,36 @@
+{% extends "users/base.html" %}
+
+{% block title %}Add New Review to {{ movie.title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">Add New Review for {{ movie.title }}</h1>
+
+    {% if messages %}
+        <div class="alert alert-info">
+            <ul class="mb-0">
+                {% for message in messages %}
+                    <li class="{{ message.tags }}">{{ message }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+
+    <form method="POST" class="bg-light-subtle p-4 rounded border border-dark">
+        {% csrf_token %}
+
+        <div class="mb-3">
+            <label for="{{ form.rating.id_for_label }}" class="form-label">Rating:</label>
+            {{ form.rating }}
+        </div>
+
+        <div class="mb-3">
+            <label for="{{ form.review.id_for_label }}" class="form-label">Review:</label>
+            {{ form.review }}
+        </div>
+
+        <button type="submit" class="btn btn-primary">Add Review</button>
+        <a href="{% url 'movies:movie_detail' movie.title %}" class="btn btn-secondary ms-2">Go back to movie detail page</a>
+    </form>
+</div>
+{% endblock %}

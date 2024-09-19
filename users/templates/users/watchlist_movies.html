@@ -1,0 +1,146 @@
+{% extends "users/base.html" %}
+
+{% block title %}
+    {% if are_equal %}
+        Your Watchlist
+    {% else %}
+        {{ user.username }}'s Watchlist
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card border-dark">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4>
+                        {% if are_equal %}
+                            Your Watchlist
+                        {% else %}
+                            <a href="{% url 'users:profile' user.username %}" class="username-link">{{ user.username }}</a>'s Watchlist
+                        {% endif %}
+                    </h4>
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination mb-0">
+                            {% if watch_list.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link btn btn-secondary" href="?page=1" aria-label="First">
+                                        <span aria-hidden="true">&laquo;&laquo;</span>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link btn btn-secondary" href="?page={{ watch_list.previous_page_number }}" aria-label="Previous">
+                                        <span aria-hidden="true">&laquo;</span>
+                                    </a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled">
+                                    <span class="page-link btn btn-secondary">&laquo;&laquo;</span>
+                                </li>
+                                <li class="page-item disabled">
+                                    <span class="page-link btn btn-secondary">&laquo;</span>
+                                </li>
+                            {% endif %}
+
+                            <li class="page-item disabled">
+                                <span class="page-link btn btn-secondary">Page {{ watch_list.number }} of {{ watch_list.paginator.num_pages }}</span>
+                            </li>
+
+                            {% if watch_list.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link btn btn-secondary" href="?page={{ watch_list.next_page_number }}" aria-label="Next">
+                                        <span aria-hidden="true">&raquo;</span>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link btn btn-secondary" href="?page={{ watch_list.paginator.num_pages }}" aria-label="Last">
+                                        <span aria-hidden="true">&raquo;&raquo;</span>
+                                    </a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled">
+                                    <span class="page-link btn btn-secondary">&raquo;</span>
+                                </li>
+                                <li class="page-item disabled">
+                                    <span class="page-link btn btn-secondary">&raquo;&raquo;</span>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                </div>
+                <div class="card-body">
+                    {% if watch_list %}
+                        <div class="row">
+                            {% for movie in watch_list %}
+                                <div class="col-md-2 mb-3">
+                                    <div class="card bg-dark text-light border-dark card-custom">
+                                        <a href="{% url 'movies:movie_detail' movie.movie.title %}">
+                                            <img src="{{ movie.movie.poster.url }}" class="card-img-top" alt="{{ movie.movie.title }} Poster">
+                                        </a>
+                                        <div class="card-body text-center">
+                                            <h5 class="card-title">{{ movie.movie.title }}</h5>
+                                            <p class="card-text">{{ movie.movie.year }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p>No movies in watchlist yet.</p>
+                    {% endif %}
+                </div>
+                <div class="d-flex justify-content-end mt-4" style="margin-bottom: 20px; padding-right: 15px;">
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination mb-0">
+                            {% if watch_list.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link btn btn-secondary" href="?page=1" aria-label="First">
+                                        <span aria-hidden="true">&laquo;&laquo;</span>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link btn btn-secondary" href="?page={{ watch_list.previous_page_number }}" aria-label="Previous">
+                                        <span aria-hidden="true">&laquo;</span>
+                                    </a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled">
+                                    <span class="page-link btn btn-secondary">&laquo;&laquo;</span>
+                                </li>
+                                <li class="page-item disabled">
+                                    <span class="page-link btn btn-secondary">&laquo;</span>
+                                </li>
+                            {% endif %}
+
+                            <li class="page-item disabled">
+                                <span class="page-link btn btn-secondary">Page {{ watch_list.number }} of {{ watch_list.paginator.num_pages }}</span>
+                            </li>
+
+                            {% if watch_list.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link btn btn-secondary" href="?page={{ watch_list.next_page_number }}" aria-label="Next">
+                                        <span aria-hidden="true">&raquo;</span>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link btn btn-secondary" href="?page={{ watch_list.paginator.num_pages }}" aria-label="Last">
+                                        <span aria-hidden="true">&raquo;&raquo;</span>
+                                    </a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled">
+                                    <span class="page-link btn btn-secondary">&raquo;</span>
+                                </li>
+                                <li class="page-item disabled">
+                                    <span class="page-link btn btn-secondary">&raquo;&raquo;</span>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

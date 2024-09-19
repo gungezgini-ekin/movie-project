@@ -1,0 +1,129 @@
+{% extends "users/base.html" %}
+
+{% block title %}Search Results{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">Search Results for "{{ query }}"</h1>
+
+    {% if query %}
+    <div class="row">
+        <!-- Movies Section -->
+        <div class="col-md-12 mb-4">
+            <h2 class="mb-3">Movies</h2>
+            {% if movies %}
+            <div class="row">
+                {% for movie in movies %}
+                <div class="col-md-4 mb-4">
+                    <div class="card" style="width: 100%; max-width: 18rem;">
+                        <a href="{% url 'movies:movie_detail' movie.title %}">
+                            <img src="{{ movie.poster.url }}" class="card-img-top" alt="{{ movie.title }} poster" style="height: auto; max-height: 300px; object-fit: contain;">
+                        </a>
+                        <div class="card-body">
+                            <h5 class="card-title">{{ movie.title }}</h5>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-center">No results found for "{{ query }}" in movies.</p>
+            {% endif %}
+        </div>
+
+        <!-- Directors Section -->
+        <div class="col-md-12 mb-4">
+            <h2 class="mb-3">Directors</h2>
+            {% if directors %}
+            <div class="list-group">
+                {% for director in directors %}
+                <a href="{% url 'movies:director_detail' director.name %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                    {{ director.name }}
+                    <span class="badge bg-secondary rounded-pill">View</span>
+                </a>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-center">No results found for "{{ query }}" in directors.</p>
+            {% endif %}
+        </div>
+
+        <!-- Genres Section -->
+        <div class="col-md-12 mb-4">
+            <h2 class="mb-3">Genres</h2>
+            {% if genres %}
+            <div class="list-group">
+                {% for genre in genres %}
+                <a href="{% url 'movies:genre_detail' genre.name %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                    {{ genre.name }}
+                    <span class="badge bg-secondary rounded-pill">View</span>
+                </a>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-center">No results found for "{{ query }}" in genres.</p>
+            {% endif %}
+        </div>
+
+        <!-- Your Lists Section -->
+        {% if request.user.is_authenticated %}
+        <div class="col-md-12 mb-4">
+            <h2 class="mb-3">Your Lists</h2>
+            {% if your_lists %}
+            <div class="list-group">
+                {% for list in your_lists %}
+                <a href="{% url 'users:custom_list' list.id request.user.username %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                    {{ list.name }}
+                    <span class="badge bg-secondary rounded-pill">View</span>
+                </a>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-center">No results found for "{{ query }}" in your lists.</p>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <!-- Other Lists Section -->
+
+        <div class="col-md-12 mb-4">
+            <h2 class="mb-3">Lists</h2>
+            {% if all_lists %}
+            <div class="list-group">
+                {% for list in all_lists %}
+                <a href="{% url 'users:custom_list' list.id list.user.username %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                    {{ list.name }}
+                    <span class="badge bg-secondary rounded-pill">View</span>
+                </a>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-center">No results found for "{{ query }}" in lists.</p>
+            {% endif %}
+        </div>
+
+        <!-- Users Section -->
+
+        <div class="col-md-12 mb-4">
+            <h2 class="mb-3">Users</h2>
+            {% if users %}
+            <div class="list-group">
+                {% for user in users %}
+                <a href="{% url 'users:profile' user.username %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                    {{ user.username }}
+                    <span class="badge bg-secondary rounded-pill">Profile</span>
+                </a>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-center">No results found for "{{ query }}" in users.</p>
+            {% endif %}
+        </div>
+
+
+    </div>
+    {% else %}
+    <h1 class="text-center">Please enter a search query</h1>
+    {% endif %}
+</div>
+{% endblock %}

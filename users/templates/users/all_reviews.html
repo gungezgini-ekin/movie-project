@@ -1,0 +1,198 @@
+{% extends "users/base.html" %}
+
+{% block title %}
+{% if all %}
+        {% if are_equal %}
+            All Your Reviews
+        {% else %}
+            All Reviews by {{ user.username }}
+        {% endif %}
+{% else %}
+        {% if are_equal %}
+            Your Reviews in {{ year }}
+        {% else %}
+            {{ user.username }}'s Reviews in {{ year }}
+        {% endif %}
+{% endif %}
+{% endblock %}
+
+{% block content %}
+    {% if messages %}
+        <div class="alert alert-info">
+            {% for message in messages %}
+                <p>{{ message }}</p>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+<div class="container mt-4">
+    <div class="row">
+        <!-- Title and Top Pagination Controls -->
+        <div class="col-md-6">
+            <h1 class="mb-4">
+            {% if all %}
+                {% if are_equal %}
+                    All Your Reviews
+                {% else %}
+                    All Reviews by <a href="{% url 'users:profile' user.username %}" class="username-link">{{ user.username }}</a>
+                {% endif %}
+            {% else %}
+                {% if are_equal %}
+                    Your Reviews in {{ year }}
+                {% else %}
+                    <a href="{% url 'users:profile' user.username %}" class="username-link">{{ user.username }}</a>'s Reviews in {{ year }}
+                {% endif %}
+            {% endif %}
+            </h1>
+        </div>
+        <div class="col-md-6 d-flex justify-content-end align-items-center">
+            <nav aria-label="Page navigation">
+                <ul class="pagination mb-0">
+                    {% if reviews.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link btn btn-secondary" href="?page=1" aria-label="First">
+                                <span aria-hidden="true">&laquo;&laquo;</span>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link btn btn-secondary" href="?page={{ reviews.previous_page_number }}" aria-label="Previous">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link btn btn-secondary">&laquo;&laquo;</span>
+                        </li>
+                        <li class="page-item disabled">
+                            <span class="page-link btn btn-secondary">&laquo;</span>
+                        </li>
+                    {% endif %}
+
+                    <li class="page-item disabled">
+                        <span class="page-link btn btn-secondary">Page {{ reviews.number }} of {{ reviews.paginator.num_pages }}</span>
+                    </li>
+
+                    {% if reviews.has_next %}
+                        <li class="page-item">
+                            <a class="page-link btn btn-secondary" href="?page={{ reviews.next_page_number }}" aria-label="Next">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link btn btn-secondary" href="?page={{ reviews.paginator.num_pages }}" aria-label="Last">
+                                <span aria-hidden="true">&raquo;&raquo;</span>
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link btn btn-secondary">&raquo;</span>
+                        </li>
+                        <li class="page-item disabled">
+                            <span class="page-link btn btn-secondary">&raquo;&raquo;</span>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        <!-- Dropdown menu to select a year -->
+                <form method="get" action="">
+                    <div class="mb-3 d-flex align-items-center">
+                        <label for="year-select" class="form-label mb-0 me-2">Written in:</label>
+                        <div class="dropdown">
+                            <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="year-select" data-bs-toggle="dropdown" aria-expanded="false">
+                                {{ year|default:"Select a year" }}
+                            </button>
+                            <ul class="dropdown-menu" aria-labelledby="year-select">
+                                <li><a class="dropdown-item" href="{% url 'users:all_reviews' user.username %}">All</a></li>
+                                {% for y in years %}
+                                    <li><a class="dropdown-item" href="{% url 'users:all_reviews' user.username y %}">{{ y }}</a></li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </form>
+    </div>
+
+    <div class="row">
+        {% for review in reviews %}
+            <div class="col-md-4 mb-4">
+                <div class="card" style="width: 18rem;">
+                    <a href="{% url 'movies:movie_detail' review.movie.title %}">
+                        <img src="{{ review.movie.poster.url }}" class="card-img-top" alt="{{ review.movie.title }} poster" style="height: auto; max-height: 300px; object-fit: contain;">
+                    </a>
+                    <div class="card-body">
+                        <h5 class="card-title">{{ review.movie.title }}</h5>
+                        <p class="card-text">{{ review.review|slice:":100" }}{% if review.review|length > 100 %}...{% endif %}</p>
+                        <div class="d-flex mb-2">
+                            <span class="badge bg-success">Score: {{ review.rating }}</span>
+                            <span class="badge bg-success ms-2">Added on {{ review.review_date.date }}</span>
+                        </div>
+                        <!-- Review buttons positioned below the score -->
+                        <a href="{% url 'users:review_detail' review.id %}" class="btn btn-secondary mb-2">View Full Review</a>
+                        {% if request.user.is_authenticated and review.writer == request.user %}
+                            <form action="{% url 'users:delete_review' %}" method="post" class="d-inline">
+                                {% csrf_token %}
+                                <input type="hidden" name="review_id" value="{{ review.id }}">
+                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this review?');">Delete Review</button>
+                            </form>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <p class="text-center">No reviews found.</p>
+        {% endfor %}
+    </div>
+
+    <!-- Bottom Pagination Controls -->
+    <div class="d-flex justify-content-end mt-4 mb-4">
+        <nav aria-label="Page navigation">
+            <ul class="pagination mb-0">
+                {% if reviews.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link btn btn-secondary" href="?page=1" aria-label="First">
+                            <span aria-hidden="true">&laquo;&laquo;</span>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link btn btn-secondary" href="?page={{ reviews.previous_page_number }}" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link btn btn-secondary">&laquo;&laquo;</span>
+                    </li>
+                    <li class="page-item disabled">
+                        <span class="page-link btn btn-secondary">&laquo;</span>
+                    </li>
+                {% endif %}
+
+                <li class="page-item disabled">
+                    <span class="page-link btn btn-secondary">Page {{ reviews.number }} of {{ reviews.paginator.num_pages }}</span>
+                </li>
+
+                {% if reviews.has_next %}
+                    <li class="page-item">
+                        <a class="page-link btn btn-secondary" href="?page={{ reviews.next_page_number }}" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link btn btn-secondary" href="?page={{ reviews.paginator.num_pages }}" aria-label="Last">
+                            <span aria-hidden="true">&raquo;&raquo;</span>
+                        </a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link btn btn-secondary">&raquo;</span>
+                    </li>
+                    <li class="page-item disabled">
+                        <span class="page-link btn btn-secondary">&raquo;&raquo;</span>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+</div>
+{% endblock %}

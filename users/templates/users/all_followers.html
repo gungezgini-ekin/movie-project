@@ -1,0 +1,55 @@
+{% extends "users/base.html" %}
+
+{% block title %}
+    {% if are_equal %}
+        Your Followers
+    {% else %}
+        All Followers of {{ user.username }}
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    {% if messages %}
+        <div class="alert alert-info">
+            {% for message in messages %}
+                <p>{{ message }}</p>
+            {% endfor %}
+        </div>
+    {% endif %}
+    {% if permitted %}
+    <div class="container mt-4 mb-4">
+        <h2 class="mb-3">
+            {% if are_equal %}
+                You have {{ followers_count }} followers.
+            {% else %}
+                {{ user.username }} has {{ followers_count }} followers.
+            {% endif %}
+        </h2>
+        {% if followers %}
+            <div class="list-group">
+                {% for follower in followers %}
+                    <a href="{% url 'users:profile' follower.follower.username %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                        <span class="d-flex align-items-center">
+                            {{ follower.follower.username }}
+                        </span>
+                        <div class="d-flex align-items-center ms-auto">
+                            <span class="badge bg-secondary rounded-pill me-2">Profile</span>
+                            {% if request.user.is_authenticated and are_equal %}
+                                <form action="{% url 'users:delete_follower' %}" method="post" class="d-inline">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="selected_follower" value="{{ follower.follower.username }}">
+                                    <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('Are you sure you want to delete this user from your followers?');" title="Remove follower">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </form>
+                            {% endif %}
+                        </div>
+                    </a>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="text-center">No followers yet.</p>
+        {% endif %}
+    </div>
+    {% endif %}
+{% endblock %}

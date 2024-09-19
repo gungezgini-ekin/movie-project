@@ -1,0 +1,46 @@
+{% extends "users/base.html" %}
+
+{% block title %}Register{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card border-dark shadow-lg">
+                <div class="card-header bg-dark text-white text-center">
+                    <h2>Register</h2>
+                </div>
+                <div class="card-body">
+                    <!-- Displaying Messages -->
+                    {% if messages %}
+                        <div class="alert alert-warning" role="alert">
+                            <ul class="mb-0">
+                                {% for message in messages %}
+                                    <li>{{ message }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endif %}
+
+                    <!-- Register Form -->
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            {{ form.as_p }}
+                        </div>
+                        <div class="d-grid gap-2 text-center">
+                            <button type="submit" class="btn btn-primary btn-lg">Register</button>
+                        </div>
+                    </form>
+
+                    <!-- Login Link -->
+                    <div class="mt-3 text-center">
+                        <p>Already have an account?</p>
+                        <a href="{% url 'users:login' %}" class="btn btn-secondary btn-sm">Login Here!</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

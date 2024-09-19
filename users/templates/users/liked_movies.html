@@ -1,0 +1,185 @@
+{% extends "users/base.html" %}
+
+{% block title %}
+    {% if all %}
+        {% if are_equal %}
+            Movies You Liked
+        {% else %}
+            Movies {{ user.username }} Liked
+        {% endif %}
+    {% else %}
+        {% if are_equal %}
+            Movies You Liked in {{ year }}
+        {% else %}
+            Movies {{ user.username }} Liked in {{ year }}
+        {% endif %}
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card border-dark">
+                <div class="card-header ">
+                    <div class="d-flex justify-content-between align-items-center">
+                    <h4>
+                        {% if all %}
+                            {% if are_equal %}
+                                Movies You Liked
+                            {% else %}
+                                Movies <a href="{% url 'users:profile' user.username %}" class="username-link">{{ user.username }}</a> Liked
+                            {% endif %}
+                        {% else %}
+                            {% if are_equal %}
+                                Movies You Liked in {{ year }}
+                            {% else %}
+                                Movies <a href="{% url 'users:profile' user.username %}" class="username-link">{{ user.username }}</a> Liked in {{ year }}
+                            {% endif %}
+                        {% endif %}
+                    </h4>
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination mb-0">
+                            {% if liked_movies.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link btn btn-secondary" href="?page=1" aria-label="First">
+                                        <span aria-hidden="true">&laquo;&laquo;</span>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link btn btn-secondary" href="?page={{ liked_movies.previous_page_number }}" aria-label="Previous">
+                                        <span aria-hidden="true">&laquo;</span>
+                                    </a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled">
+                                    <span class="page-link btn btn-secondary">&laquo;&laquo;</span>
+                                </li>
+                                <li class="page-item disabled">
+                                    <span class="page-link btn btn-secondary">&laquo;</span>
+                                </li>
+                            {% endif %}
+
+                            <li class="page-item disabled">
+                                <span class="page-link btn btn-secondary">Page {{ liked_movies.number }} of {{ liked_movies.paginator.num_pages }}</span>
+                            </li>
+
+                            {% if liked_movies.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link btn btn-secondary" href="?page={{ liked_movies.next_page_number }}" aria-label="Next">
+                                        <span aria-hidden="true">&raquo;</span>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link btn btn-secondary" href="?page={{ liked_movies.paginator.num_pages }}" aria-label="Last">
+                                        <span aria-hidden="true">&raquo;&raquo;</span>
+                                    </a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled">
+                                    <span class="page-link btn btn-secondary">&raquo;</span>
+                                </li>
+                                <li class="page-item disabled">
+                                    <span class="page-link btn btn-secondary">&raquo;&raquo;</span>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    </div>
+                <!-- Dropdown menu to select a year -->
+                <form method="get" action="">
+                    <div class="mb-3 d-flex align-items-center">
+                        <label for="year-select" class="form-label mb-0 me-2">Liked in:</label>
+                        <div class="dropdown">
+                            <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="year-select" data-bs-toggle="dropdown" aria-expanded="false">
+                                {{ year|default:"Select a year" }}
+                            </button>
+                            <ul class="dropdown-menu" aria-labelledby="year-select">
+                                <li><a class="dropdown-item" href="{% url 'users:liked_movies' user.username %}">All</a></li>
+                                {% for y in years %}
+                                    <li><a class="dropdown-item" href="{% url 'users:liked_movies' user.username y %}">{{ y }}</a></li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </form>
+                </div>
+                <div class="card-body">
+                    {% if liked_movies %}
+                        <div class="row">
+                            {% for liked_movie in liked_movies %}
+                                <div class="col-md-2 mb-3">
+                                    <div class="card bg-dark text-light border-dark card-custom">
+                                        <a href="{% url 'movies:movie_detail' liked_movie.movie.title %}">
+                                            <img src="{{ liked_movie.movie.poster.url }}" class="card-img-top" alt="{{ liked_movie.movie.title }} Poster">
+                                        </a>
+                                        <div class="card-body text-center">
+                                            <h5 class="card-title">{{ liked_movie.movie.title }}</h5>
+                                            <p class="card-text">{{ liked_movie.movie.year }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {% if all %}
+                            <p>No liked movies yet.</p>
+                        {% else %}
+                            <p>No liked movies in {{ year }}.</p>
+                        {% endif %}
+                    {% endif %}
+                </div>
+                <div class="d-flex justify-content-end mt-4" style="margin-bottom: 20px; padding-right: 15px;">
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination mb-0">
+                            {% if liked_movies.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link btn btn-secondary" href="?page=1" aria-label="First">
+                                        <span aria-hidden="true">&laquo;&laquo;</span>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link btn btn-secondary" href="?page={{ liked_movies.previous_page_number }}" aria-label="Previous">
+                                        <span aria-hidden="true">&laquo;</span>
+                                    </a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled">
+                                    <span class="page-link btn btn-secondary">&laquo;&laquo;</span>
+                                </li>
+                                <li class="page-item disabled">
+                                    <span class="page-link btn btn-secondary">&laquo;</span>
+                                </li>
+                            {% endif %}
+
+                            <li class="page-item disabled">
+                                <span class="page-link btn btn-secondary">Page {{ liked_movies.number }} of {{ liked_movies.paginator.num_pages }}</span>
+                            </li>
+
+                            {% if liked_movies.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link btn btn-secondary" href="?page={{ liked_movies.next_page_number }}" aria-label="Next">
+                                        <span aria-hidden="true">&raquo;</span>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link btn btn-secondary" href="?page={{ liked_movies.paginator.num_pages }}" aria-label="Last">
+                                        <span aria-hidden="true">&raquo;&raquo;</span>
+                                    </a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled">
+                                    <span class="page-link btn btn-secondary">&raquo;</span>
+                                </li>
+                                <li class="page-item disabled">
+                                    <span class="page-link btn btn-secondary">&raquo;&raquo;</span>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

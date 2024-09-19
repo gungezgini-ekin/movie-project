@@ -1,0 +1,292 @@
+{% extends "users/base.html" %}
+
+{% block title %}{{ user.username }}'s Profile{% endblock %}
+
+{% block content %}
+    {% if messages %}
+        <div class="alert alert-info">
+            {% for message in messages %}
+                <p>{{ message }}</p>
+            {% endfor %}
+        </div>
+    {% endif %}
+<div class="container mt-4">
+    <input type="hidden" id="mutual-follow-or-equal" value="{{ mutual_follow_or_equal|yesno:'true,false' }}">
+    <div class="row">
+        <!-- Profile Picture and Bio -->
+        <div class="col-md-4 mb-4">
+            <div class="card border-dark mb-4">
+                <img src="{{ user.profile.image.url }}" class="card-img-top" alt="{{ user.username }}'s Profile Picture">
+                <div class="card-body bg-dark text-light text-center">
+                    <h3 class="card-title">{{ user.username }}</h3>
+                    <p class="card-text">{{ user.profile.bio|default:"No bio available." }}</p>
+                    {% if are_equal %}
+                        <a href="{% url 'users:profile_update' %}" class="btn" style="background-color: #4b2e97; color: white;">Update Profile</a>
+                    {% else %}
+                        <button class="follow-unfollow-btn btn" style="background-color: #4b2e97; color: white;"
+                            data-url="{% if follows %}{% url 'users:unfollow' user.username %}{% else %}{% url 'users:follow' user.username %}{% endif %}">
+                            {% if follows %}
+                                Unfollow
+                            {% else %}
+                                Follow
+                            {% endif %}
+                        </button>
+                    {% endif %}
+                    <a href="{% url 'users:all_reviews' user.username %}" class="btn btn-secondary">See All Reviews</a>
+                    <!-- New Buttons for Followers and Followings -->
+
+                        <div id="follower-following-section" class="mt-3">
+                            <a href="{% url 'users:all_followers' user.username %}" class="btn btn-outline-secondary me-2" title="View All">
+                                <span class="followers-count">{{ followers_count }}</span> Followers
+                            </a>
+                            <a href="{% url 'users:all_followings' user.username %}" class="btn btn-outline-secondary" title="View All">
+                                <span class="following-count">{{ following_count }}</span> Followings
+                            </a>
+                        </div>
+
+                        <div id="follower-following-section-2" class="mt-3" style="display:none;">
+                            <p><strong>Followers:</strong> <span class="followers-count">{{ followers_count }}</span></p>
+                            <p><strong>Following:</strong> <span class="following-count">{{ following_count }}</span></p>
+                        </div>
+
+                </div>
+            </div>
+
+<!-- stats with gradient header -->
+<div class="card border-dark mb-4 bg-dark text-light">
+    <div class="card-header bg-gradient-light text-light border-light" style="background: linear-gradient(to right, #555, #333);">
+        <h4>User Stats</h4>
+    </div>
+    <div class="card-body">
+        <ul class="list-group">
+            <li class="list-group-item bg-dark text-light d-flex justify-content-between align-items-center">
+                Reviews Written This Year
+                <span class="badge rounded-pill" style="background-color: #4b2e97; color: white;">{{ reviews_this_year_count }} / {{ all_reviews_count }}</span>
+                <a href="{% url 'users:all_reviews' user.username year %}" class="btn btn-sm btn-secondary">View</a>
+            </li>
+
+            <li class="list-group-item bg-dark text-light d-flex justify-content-between align-items-center">
+                Watched Movies This Year
+                <span class="badge rounded-pill" style="background-color: #4b2e97; color: white;">{{ watched_this_year_count }} / {{ all_watched_count }}</span>
+                <a href="{% url 'users:watched_movies' user.username year %}" class="btn btn-sm btn-secondary">View</a>
+            </li>
+
+            <li class="list-group-item bg-dark text-light d-flex justify-content-between align-items-center">
+                Liked Movies This Year
+                <span class="badge rounded-pill" style="background-color: #4b2e97; color: white;">{{ liked_this_year_count }} / {{ all_liked_count }}</span>
+                <a href="{% url 'users:liked_movies' user.username year %}" class="btn btn-sm btn-secondary">View</a>
+            </li>
+        </ul>
+    </div>
+</div>
+
+            <!-- most liked lists -->
+            <div class="card border-dark mb-4 bg-dark text-light">
+                <div class="card-header bg-gradient-light text-light border-light" style="background: linear-gradient(to right, #555, #333);">
+                    {% if are_equal %}
+                        <h4>Your Most Liked Lists</h4>
+                    {% else %}
+                        <h4>Most Liked Lists of {{ user.username }}</h4>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    <ul class="list-group">
+                        {% for list in most_liked_lists %}
+                            <li class="list-group-item bg-dark text-light d-flex justify-content-between align-items-center">
+                                <span class="badge bg-secondary me-1">{{ forloop.counter }}.</span>
+                                <span> {{ list.name }}</span>
+                                <span class="badge rounded-pill" style="background-color: #4b2e97; color: white;">{{ list.likes }} Likes</span>
+                                <a href="{% url 'users:custom_list' list.id user.username%}" class="btn btn-sm btn-secondary">View</a>
+                            </li>
+                        {% empty %}
+                            <li class="list-group-item bg-dark text-light d-flex justify-content-between align-items-center">
+                                No lists available.
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- User Info and Lists -->
+        <div class="col-md-8">
+            <!-- Buttons for Creating New Lists and Viewing All Lists -->
+            <div class="d-flex justify-content-between mb-4">
+                <div>
+                {% if are_equal %}
+                    <a href="{% url 'users:create_new_list' %}" class="btn" style="background-color: #4b2e97; color: white;">Create New List</a>
+                {% endif %}
+                <a href="{% url 'users:all_lists' user.username %}" class="btn btn-secondary">See All Lists</a>
+                </div>
+                <div>
+                    <a href="{% url 'users:favourite_lists' user.username %}" class="btn btn-secondary">See Favourite Lists</a>
+                </div>
+            </div>
+
+            <!-- Liked Movies List -->
+            <div class="card border-dark mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center bg-gradient-light text-light border-light" style="background: linear-gradient(to right, #555, #333);">
+                    <h4>Liked Movies</h4>
+                    <a href="{% url 'users:liked_movies' user.username %}" class="btn btn-secondary btn-sm">See All</a>
+                </div>
+                <div class="card-body bg-dark text-light">
+                    {% if liked_movies %}
+                        <div class="row">
+                            {% for movie in liked_movies %}
+                                <div class="col-md-3 mb-3">
+                                    <div class="card bg-dark text-light border-light card-custom">
+                                        <a href="{% url 'movies:movie_detail' movie.movie.title %}">
+                                            <img src="{{ movie.movie.poster.url }}" class="card-img-top" alt="{{ movie.movie.title }} Poster">
+                                        </a>
+                                        <div class="card-body text-center">
+                                            <h5 class="card-title">{{ movie.movie.title }}</h5>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p>No liked movies yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+            <!-- Watched Movies List -->
+            <div class="card border-dark mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center bg-gradient-light text-light border-light" style="background: linear-gradient(to right, #555, #333);">
+                    <h4>Watched Movies</h4>
+                    <a href="{% url 'users:watched_movies' user.username %}" class="btn btn-secondary btn-sm">See All</a>
+                </div>
+                <div class="card-body bg-dark text-light">
+                    {% if watched_movies %}
+                        <div class="row">
+                            {% for movie in watched_movies %}
+                                <div class="col-md-3 mb-3">
+                                    <div class="card bg-dark text-light border-light card-custom" >
+                                        <a href="{% url 'movies:movie_detail' movie.movie.title %}">
+                                            <img src="{{ movie.movie.poster.url }}" class="card-img-top" alt="{{ movie.movie.title }} Poster">
+                                        </a>
+                                        <div class="card-body text-center">
+                                            <h5 class="card-title">{{ movie.movie.title }}</h5>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p>No movies are watched yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+            <!-- Watchlist List -->
+            <div class="card border-dark mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center bg-gradient-light text-light border-light" style="background: linear-gradient(to right, #555, #333);">
+                    <h4>Watchlist</h4>
+                    <a href="{% url 'users:watchlist' user.username %}" class="btn btn-secondary btn-sm">See All</a>
+                </div>
+                <div class="card-body bg-dark text-light">
+                    {% if want_to_watch %}
+                        <div class="row">
+                            {% for movie in want_to_watch %}
+                                <div class="col-md-3 mb-3">
+                                    <div class="card bg-dark text-light border-light card-custom">
+                                        <a href="{% url 'movies:movie_detail' movie.movie.title %}">
+                                            <img src="{{ movie.movie.poster.url }}" class="card-img-top" alt="{{ movie.movie.title }} Poster">
+                                        </a>
+                                        <div class="card-body text-center">
+                                            <h5 class="card-title">{{ movie.movie.title }}</h5>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p>No movies in watchlist yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+    <!-- JavaScript for AJAX -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+$(document).ready(function() {
+    function getCSRFToken() {
+        return document.querySelector('[name=csrfmiddlewaretoken]').value;
+    }
+
+    function toggleFollowerFollowingSection() {
+        var mutualFollowOrEqual = $('#mutual-follow-or-equal').val() === 'true';
+
+        console.log('mutualFollowOrEqual (JavaScript):', mutualFollowOrEqual); // Debugging line
+
+        if (mutualFollowOrEqual) {
+            $('#follower-following-section').css('display', 'block');
+            $('#follower-following-section-2').css('display', 'none');
+        }
+        else {
+            $('#follower-following-section').css('display', 'none');
+            $('#follower-following-section-2').css('display', 'block');
+        }
+    }
+
+    $('.follow-unfollow-btn').click(function(e) {
+        e.preventDefault();
+
+        var button = $(this);
+        var url = button.data('url');  // URL for follow or unfollow
+        var csrftoken = getCSRFToken();
+
+        $.ajax({
+            type: "POST",
+            url: url,
+            headers: { "X-CSRFToken": csrftoken }, // Include CSRF token
+            success: function(response) {
+                console.log('AJAX response:', response); // Debugging line
+
+                if (response.status === 'followed') {
+                    button.text('Unfollow');
+                    button.data('url', response.unfollow_url);
+                } else if (response.status === 'unfollowed') {
+                    button.text('Follow');
+                    button.data('url', response.follow_url);
+                }
+
+                // Update the follower and following counts
+                $('.followers-count').text(response.followers_count);
+                $('.following-count').text(response.following_count);
+
+                // Update the mutual_follow_or_equal hidden input value
+                $('#mutual-follow-or-equal').val(response.mutual_follow_or_equal.toString());
+
+                // Toggle the visibility based on mutual follow status
+                toggleFollowerFollowingSection();
+
+                // Display the success message
+                if (response.message) {
+                    $('.alert-info').remove();  // Remove existing message
+                    var messageHtml = '<div class="alert alert-info">' + response.message + '</div>';
+                    button.closest('.card-body').prepend(messageHtml);
+                }
+            },
+            error: function(xhr, status, error) {
+                if (xhr.status === 401) {
+                    // Redirect to the login page if the user is not authenticated
+                    window.location.href = "/login/";
+                } else {
+                    console.error('Error:', xhr.status);
+                }
+            }
+
+        });
+    });
+
+    // Initial visibility setting based on mutual_follow_or_equal
+    toggleFollowerFollowingSection();
+
+});
+
+
+</script>
+{% endblock %}

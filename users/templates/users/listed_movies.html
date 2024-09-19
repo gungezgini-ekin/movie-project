@@ -1,0 +1,264 @@
+{% extends "users/base.html" %}
+
+{% block title %}{{ list_name }}{% endblock %}
+
+{% block content %}
+    {% if messages %}
+        <div class="alert alert-info">
+            {% for message in messages %}
+                <p>{{ message }}</p>
+            {% endfor %}
+        </div>
+    {% endif %}
+    {% if permitted %}
+        <div id="alert-container"></div>
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card border-dark">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">{{ list_name }} by
+                        <a href="{% url 'users:profile' username %}" class="username-link">{{ username }}</a>
+                    </h4>
+                    <div class="d-flex align-items-center">
+                        {% if are_equal %}
+                            <button class="public-private-btn btn btn-secondary" style="margin-right: 1rem"
+                                data-url="{% if is_private %}{% url 'users:make_public' list_id username %}{% else %}{% url 'users:make_private' list_id username %}{% endif %}">
+                                {% if is_private %}
+                                    Make This List Public
+                                {% else %}
+                                    Make This List Private
+                                {% endif %}
+                            </button>
+                            <form action="{% url 'users:delete_list' %}" method="post" class="me-3 mb-0">
+                                {% csrf_token %}
+                                <input type="hidden" name="list_id" value="{{ list_id }}">
+                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this list?');">
+                                    Delete List
+                                </button>
+                            </form>
+                        {% else %}
+                            <button class="like-unlike-btn btn p-0" style="font-size: 24px; color: #888; background: none; border: none; cursor: pointer; margin-right: 1rem;"
+                                data-url="{% if liked %}{% url 'users:delete_list_like' list_id  %}{% else %}{% url 'users:add_list_like' list_id %}{% endif %}">
+                                {% if liked %}
+                                    ❤️
+                                {% else %}
+                                    &#9825;
+                                {% endif %}
+                            </button>
+                        {% endif %}
+                        <nav aria-label="Page navigation">
+                            <ul class="pagination mb-0">
+                                {% if list.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link btn btn-secondary" href="?page=1" aria-label="First">
+                                            <span aria-hidden="true">&laquo;&laquo;</span>
+                                        </a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link btn btn-secondary" href="?page={{ list.previous_page_number }}" aria-label="Previous">
+                                            <span aria-hidden="true">&laquo;</span>
+                                        </a>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item disabled">
+                                        <span class="page-link btn btn-secondary">&laquo;&laquo;</span>
+                                    </li>
+                                    <li class="page-item disabled">
+                                        <span class="page-link btn btn-secondary">&laquo;</span>
+                                    </li>
+                                {% endif %}
+
+                                <li class="page-item disabled">
+                                    <span class="page-link btn btn-secondary">Page {{ list.number }} of {{ list.paginator.num_pages }}</span>
+                                </li>
+
+                                {% if list.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link btn btn-secondary" href="?page={{ list.next_page_number }}" aria-label="Next">
+                                            <span aria-hidden="true">&raquo;</span>
+                                        </a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link btn btn-secondary" href="?page={{ list.paginator.num_pages }}" aria-label="Last">
+                                            <span aria-hidden="true">&raquo;&raquo;</span>
+                                        </a>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item disabled">
+                                        <span class="page-link btn btn-secondary">&raquo;</span>
+                                    </li>
+                                    <li class="page-item disabled">
+                                        <span class="page-link btn btn-secondary">&raquo;&raquo;</span>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if list %}
+                        <div class="row">
+                            {% for movie in list %}
+                                <div class="col-md-2 mb-3 position-relative">
+                                    <div class="card bg-dark text-light border-dark card-custom">
+                                        <a href="{% url 'movies:movie_detail' movie.movie.title %}">
+                                            <img src="{{ movie.movie.poster.url }}" class="card-img-top" alt="{{ movie.movie.title }} Poster">
+                                        </a>
+                                        <!-- Delete button -->
+                                        {% if request.user.is_authenticated and are_equal %}
+                                        <form action="{% url 'users:delete_movie' list_id %}" method="post" class="position-absolute top-0 end-0 p-2">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="movie_name" value="{{ movie.movie.title }}">
+                                            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this movie from your list?');" style="font-size: 20px; line-height: 1; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                        </form>
+                                        {% endif %}
+                                        <div class="card-body text-center">
+                                            <h5 class="card-title">{{ movie.movie.title }}</h5>
+                                            <p class="card-text">{{ movie.movie.year }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p>No movies in "{{ list_name }}" yet.</p>
+                    {% endif %}
+                </div>
+                <div class="d-flex justify-content-end mt-4" style="margin-bottom: 20px; padding-right: 15px;">
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination mb-0">
+                            {% if list.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link btn btn-secondary" href="?page=1" aria-label="First">
+                                        <span aria-hidden="true">&laquo;&laquo;</span>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link btn btn-secondary" href="?page={{ list.previous_page_number }}" aria-label="Previous">
+                                        <span aria-hidden="true">&laquo;</span>
+                                    </a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled">
+                                    <span class="page-link btn btn-secondary">&laquo;&laquo;</span>
+                                </li>
+                                <li class="page-item disabled">
+                                    <span class="page-link btn btn-secondary">&laquo;</span>
+                                </li>
+                            {% endif %}
+
+                            <li class="page-item disabled">
+                                <span class="page-link btn btn-secondary">Page {{ list.number }} of {{ list.paginator.num_pages }}</span>
+                            </li>
+
+                            {% if list.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link btn btn-secondary" href="?page={{ list.next_page_number }}" aria-label="Next">
+                                        <span aria-hidden="true">&raquo;</span>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link btn btn-secondary" href="?page={{ list.paginator.num_pages }}" aria-label="Last">
+                                        <span aria-hidden="true">&raquo;&raquo;</span>
+                                    </a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled">
+                                    <span class="page-link btn btn-secondary">&raquo;</span>
+                                </li>
+                                <li class="page-item disabled">
+                                    <span class="page-link btn btn-secondary">&raquo;&raquo;</span>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+    {% endif %}
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+$(document).ready(function() {
+
+    $('.like-unlike-btn').click(function(e) {
+        e.preventDefault();
+
+        var button = $(this);
+        var url = button.data('url');  // URL for like unlike
+
+        $.ajax({
+            type: "POST",
+            url: url,
+            headers: { "X-CSRFToken": "{{ csrf_token }}" }, // Include CSRF token
+            success: function(response) {
+                console.log('AJAX response:', response); // Debugging line
+
+                if (response.status === 'liked') {
+                    button.html('❤️');
+                    button.data('url', response.unlike_url);
+                } else if (response.status === 'unliked') {
+                    button.html('&#9825;');
+                    button.data('url', response.like_url);
+                }
+
+
+                if (response.message) {
+                    $('#alert-container').html('<div class="alert alert-info">' + response.message + '</div>');
+                }
+            },
+            error: function(xhr, status, error) {
+                if (xhr.status === 401) {
+                    // Redirect to the login page if the user is not authenticated
+                    window.location.href = "/login/";
+                } else {
+                    console.error('Error:', xhr.status);
+                }
+            }
+        });
+    });
+
+    $('.public-private-btn').click(function(e) {
+        e.preventDefault();
+
+        var button = $(this);
+        var url = button.data('url');  // URL for like unlike
+
+        $.ajax({
+            type: "POST",
+            url: url,
+            headers: { "X-CSRFToken": "{{ csrf_token }}" }, // Include CSRF token
+            success: function(response) {
+                console.log('AJAX response:', response); // Debugging line
+
+                if (response.status === 'private') {
+                    button.text("Make This List Public");
+                    button.data('url', response.make_public_url);
+                } else if (response.status === 'public') {
+                    button.text('Make This List Private');
+                    button.data('url', response.make_private_url);
+                }
+
+                // Display the success message
+                if (response.message) {
+                    $('#alert-container').html('<div class="alert alert-info">' + response.message + '</div>');
+                }
+            },
+            error: function(xhr, status, error) {
+                if (xhr.status === 401) {
+                    // Redirect to the login page if the user is not authenticated
+                    window.location.href = "/login/";
+                } else {
+                    console.error('Error:', xhr.status);
+                }
+            }
+        });
+    });
+});
+</script>
+{% endblock %}
